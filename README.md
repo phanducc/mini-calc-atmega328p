@@ -1,6 +1,6 @@
 # Pocket Calculator with Arduino 🧮
 
-![Pocket Calculator](calc.png)
+<img src="calc.png" alt="Pocket Calculator" width="50%">
 
 ## About the Project
 This is an academic project for the "Pocket Calculator Design" course at the Faculty of Electrical and Electronic Engineering, Hanoi Open University. The project simulates and builds a standalone handheld calculator based on the open-source Arduino platform. It accurately processes basic mathematical operations following standard operator precedence (multiplication/division before addition/subtraction) using the Shunting-yard algorithm and Reverse Polish Notation (RPN).
