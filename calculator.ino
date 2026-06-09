@@ -2,13 +2,11 @@
 #include <LiquidCrystal_I2C.h>
 #include <Keypad.h>
 
-// 1. Cấu hình phần cứng
-LiquidCrystal_I2C lcd(0x27, 16, 2);  // Màn hình LCD I2C 16x2
+LiquidCrystal_I2C lcd(0x27, 16, 2);
 
-const byte ROWS = 4; // Số hàng bàn phím
-const byte COLS = 4; // Số cột bàn phím
+const byte ROWS = 4;
+const byte COLS = 4;
 
-// Bản đồ ký tự thực tế trên mạch
 char keys[ROWS][COLS] = {
   {'C','7','4','1'},
   {'0','8','5','2'},
@@ -16,36 +14,31 @@ char keys[ROWS][COLS] = {
   {'/','*','-','+'}
 };
 
-// Chân kết nối hàng và cột
 byte rowPins[ROWS] = {7, 6, 5, 4}; 
 byte colPins[COLS] = {8, 9, 10, 11}; 
 
 Keypad myKeypad = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS );
 
-// 2. Khai báo biến cho thuật toán RPN (Ngăn xếp)
-float numbers[20];   // Ngăn xếp chứa số
-char operators[20];  // Ngăn xếp chứa dấu
-int numIndex = 0;    // Con trỏ ngăn xếp số
-int opIndex = 0;     // Con trỏ ngăn xếp dấu
+float numbers[20];
+char operators[20];
+int numIndex = 0;
+int opIndex = 0;
 
-float currentVal = 0;     // Giá trị số đang nhập
-boolean isTyping = false; // Cờ báo đang nhập số
-boolean done = false;     // Cờ báo vừa tính xong
-boolean hasError = false; // Cờ báo lỗi cú pháp/chia 0
-boolean hasOvf = false;   // Cờ báo lỗi tràn bộ nhớ
+float currentVal = 0;
+boolean isTyping = false;
+boolean done = false;
+boolean hasError = false;
+boolean hasOvf = false;
 
-// 3. Khai báo biến kiểm soát hiển thị và giới hạn
-boolean lastWasOp = false; // Cờ báo vừa nhập toán tử (dùng để ghi đè)
-int cursorX = 0;           // Tọa độ con trỏ LCD
-int digitCount = 0;        // Đếm chữ số (giới hạn 7 số)
+boolean lastWasOp = false;
+int cursorX = 0;
+int digitCount = 0;
 
-// 4. Khai báo biến cho tính năng lịch sử
-float history[5];           // Mảng lưu 5 kết quả gần nhất
-int histCount = 0;          // Số lượng kết quả trong lịch sử
-int viewIndex = -1;         // Vị trí lịch sử đang xem
-boolean viewingHistory = false; // Cờ báo đang xem lịch sử
+float history[5];
+int histCount = 0;
+int viewIndex = -1;
+boolean viewingHistory = false;
 
-// 5. Khởi tạo hệ thống
 void setup() {
   lcd.init();      
   lcd.backlight(); 
@@ -55,17 +48,13 @@ void setup() {
   lcd.clear();
 }
 
-// 6. Vòng lặp chính
 void loop() {
   char key = myKeypad.getKey(); 
   
   if (key) {
-    // - Nút xóa (C)
     if (key == 'C') {
       resetFunc();
     }
-    
-    // - Nút số (0-9)
     else if (key >= '0' && key <= '9') {
       if (done || viewingHistory) resetFunc(); 
       
@@ -78,8 +67,6 @@ void loop() {
         digitCount++;
       }
     }
-    
-    // - Nút phép toán (+, -, *, /)
     else if (key == '+' || key == '-' || key == '*' || key == '/') {
       
       if (viewingHistory) {
@@ -128,8 +115,6 @@ void loop() {
       
       pushOp(key); 
     }
-    
-    // - Nút bằng (=) hoặc xem lịch sử
     else if (key == '=') {
       if (viewingHistory || (!isTyping && numIndex == 0 && opIndex == 0)) {
         if (histCount > 0) {
@@ -159,11 +144,11 @@ void loop() {
       
       lcd.setCursor(0, 1);
       if (hasError) {
-        lcd.print("Error           ");
+        lcd.print("Error            ");
         hasError = false; currentVal = 0;
       }
       else if (hasOvf) {
-        lcd.print("ovf             ");
+        lcd.print("ovf              ");
         hasOvf = false; currentVal = 0;
       }
       else {
@@ -191,9 +176,6 @@ void loop() {
   }
 }
 
-// 7. Các hàm xử lý logic thuật toán
-
-// - Đẩy số vào ngăn xếp
 void pushNumber(float val) {
   if (numIndex < 20) {
     numbers[numIndex] = val;
@@ -201,7 +183,6 @@ void pushNumber(float val) {
   }
 }
 
-// - Đẩy toán tử vào ngăn xếp
 void pushOp(char op) {
   if (opIndex < 20) {
     operators[opIndex] = op;
@@ -209,14 +190,12 @@ void pushOp(char op) {
   }
 }
 
-// - Lấy độ ưu tiên toán tử (Nhân/Chia: 2, Cộng/Trừ: 1)
 int getPriority(char op) {
   if (op == '*' || op == '/') return 2;
   if (op == '+' || op == '-') return 1;
   return 0;
 }
 
-// - Tính toán 1 bước
 void calculateStep() {
   if (opIndex == 0) return; 
   
@@ -252,7 +231,6 @@ void calculateStep() {
   numbers[numIndex - 1] = res; 
 }
 
-// - Hàm reset trạng thái về ban đầu
 void resetFunc() {
   lcd.clear();
   currentVal = 0;
